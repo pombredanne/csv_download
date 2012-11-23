@@ -1,0 +1,23 @@
+#!/bin/sh
+subdir="csv/"
+mkdir -p "http/$subdir"
+dbfile=$(csv_download/readjson database)
+tables=$(sqlite3 $dbfile 'select name from sqlite_master where type="table" or type="view"')
+for name in $tables
+do
+sqlite3 -header -csv $dbfile "select * from $name" > "http/$subdir$name.csv"
+done
+set -- $tables
+if [ $# = 0 ]
+then
+printf '[]'
+exit 0
+fi
+printf '['
+while [ $# -gt 1 ]
+do
+printf '"%s%s.csv",' $subdir $1
+shift
+done
+printf '%s%s.csv"' $subdir $1
+printf ']'
